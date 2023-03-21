@@ -1,170 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
-typedef struct{
-    unsigned char b, g, r;
-}BGR;
+#include "bmp.h"
 
 
-BGR* BGR_init(unsigned char b, unsigned char g, unsigned char r){
-
-    BGR* coppy = (BGR*)malloc(sizeof(BGR));
-
-    coppy->b = b;
-    coppy->g = g;
-    coppy->r = r;
-
-    return coppy;
-
-}
+#define size 456
 
 
-void BGR_write_to_file(FILE* f, BGR* coppy){
-
-    fwrite(coppy, sizeof(*coppy), 1, f);
-
-}
-
-
-typedef struct{
-
-    unsigned short file_type;
-    unsigned int file_size;
-    unsigned int empty_space; // empty space
-    unsigned int offset;
-
-}BMP_header;
-
-
-BMP_header* BMP_header_init(unsigned int bmp_data){
-
-    BMP_header* coppy = (BMP_header*)malloc(sizeof(BMP_header));
-
-    coppy->file_type = 0x4d42;
-    coppy->file_size = (54 + bmp_data);
-    coppy->empty_space = 0;
-    coppy->offset = 0x00000036;
-
-    return coppy;
-
-}
-
-
-void BMP_header_display(BMP_header* coppy){
-
-    printf("%d %d %d %d\n", coppy->file_type, coppy->file_size, coppy->empty_space, coppy->offset);
-
-}
-
-
-void BMP_header_write_to_file(FILE* f, BMP_header* coppy){
-
-    fwrite(&coppy->file_type, 2, 1, f);
-    fwrite(&coppy->file_size, 4, 1, f);
-    fwrite(&coppy->empty_space, 4, 1, f);
-    fwrite(&coppy->offset, 4, 1, f);
-
-}
-
-
-typedef struct{
-
-    unsigned int dib_size;
-    unsigned int width;
-    unsigned int height;
-    unsigned short planes;
-    unsigned short no_of_bits;
-    unsigned int bi_rgb;
-    unsigned int data_size;
-    unsigned int resolution_width;
-    unsigned int resolution_height;
-    unsigned int no_of_colors;
-    unsigned int no_of_imp_colors;
-
-}DIB_header;
-
-
-DIB_header* DIB_header_init(unsigned int width, unsigned int height, unsigned int data_size){
-
-    DIB_header* coppy = (DIB_header*)malloc(sizeof(DIB_header));
-
-    coppy->dib_size = 0x28;
-    coppy->width = width;
-    coppy->height = height;
-    coppy->planes = 0x1;
-    coppy->no_of_bits = 0x18;
-    coppy->bi_rgb = 0x0;
-    coppy->data_size = data_size;
-    coppy->resolution_width = 0xffff;
-    coppy->resolution_height = 0xffff;
-    coppy->no_of_colors = 0x0;
-    coppy->no_of_imp_colors = 0x0;
-
-    return coppy;
-
-}
-
-
-void DIB_heaader_display(DIB_header* coppy){
-
-    printf("%d\n", coppy->dib_size);
-    printf("%d %d\n", coppy->width, coppy->height);
-    printf("%hu %hu\n", coppy->planes, coppy->no_of_bits);
-    printf("%d \n", coppy->bi_rgb);
-    printf("%d\n", coppy->data_size);
-    printf("%d %d\n", coppy->resolution_width, coppy->resolution_height);
-    printf("%d %d\n", coppy->no_of_colors, coppy->no_of_imp_colors);
-
-}
-
-
-void DIB_header_write_to_file(FILE* f, DIB_header* coppy){
-
-    fwrite(coppy, sizeof(*coppy), 1, f);
-    // fwrite(&coppy->dib_size, 4, 1, f);
-    // fwrite(&coppy->width, 4, 1, f);
-    // fwrite(&coppy->height, 4, 1, f);
-    // fwrite(&coppy->planes, 2, 1, f);
-    // fwrite(&coppy->no_of_bits, 2, 1, f);
-    // fwrite(&coppy->bi_rgb, 4, 1, f);
-    // fwrite(&coppy->data_size, 4, 1, f);
-    // fwrite(&coppy->resolution_width, 4, 1, f);
-    // fwrite(&coppy->resolution_height, 4, 1, f);
-    // fwrite(&coppy->no_of_colors, 4, 1, f);
-    // fwrite(&coppy->no_of_imp_colors, 4, 1, f);
-
-}
-
-
-int main(){
-    
-    FILE* f = fopen("img.bmp", "wb");
-
-
-    unsigned int no_of_blocks = 10000;
-    unsigned int data_size = no_of_blocks * no_of_blocks * 3;
-
-    clock_t start = clock();
-
-    BMP_header* h1 = BMP_header_init(data_size);
-    DIB_header* d1 = DIB_header_init(no_of_blocks, no_of_blocks, data_size);
+void pattern1(FILE* f, unsigned int no_of_blocks){
 
     BGR* first = BGR_init(0,0,255);
     BGR* second = BGR_init(0,255,0);
     BGR* third = BGR_init(255, 0, 0);
     BGR* fourth = BGR_init(0, 0, 0);
 
-    printf("Initialisation: %lf\n", (clock() - start) / (double)CLOCKS_PER_SEC);
-
-    start = clock();
-
-    BMP_header_write_to_file(f, h1);
-    DIB_header_write_to_file(f, d1);
-
-
-    unsigned short space = 0;
-
+    
     for(int i=0; i<no_of_blocks; i++){
         for(int j=0; j<no_of_blocks; j++){
             if(j%2==0 && i%3 == 0)
@@ -178,12 +28,264 @@ int main(){
         }
     }
 
-    printf("Writing: %lfs\n", (double)(clock() - start) / CLOCKS_PER_SEC);
+}
 
-    free(h1);
-    free(d1);
 
-    fclose(f);
+void pattern2(FILE* f, unsigned int no_of_blocks){
+    BGR *colors[1000];
+    int index = 0;
+
+    for(int i=0; i<10; i++){
+        for(int j=0; j<10; j++){
+            for(int k=0; k<10; k++, index++){
+                colors[index] = BGR_init(i * 25, j * 25, k * 25);
+            }
+        }
+    }
+
+    for(int i=0; i<no_of_blocks; i++){
+        for(int j=0; j<no_of_blocks; j++){
+            BGR_write_to_file(f, colors[i * j % 1000]);
+        }
+    }
+}
+
+
+void lsb_method_write(FILE* from, FILE* to, char* message){
+
+    FILE* tmp = fopen("tmp.txt", "w");
+
+    fseek(from, 0xa, SEEK_SET);
+    int offset;
+    fread(&offset, sizeof(int), 1, from);
+
+    int width, height;
+    fseek(from, 0x12, SEEK_SET);
+    fread(&width, sizeof(int), 1, from);
+    fread(&height, sizeof(int), 1, from);
+
+    fseek(from, 0 , SEEK_SET);
+
+    // reading the BMP_header and DIB_header
+    char buffer[54];
+    fread(buffer, sizeof(char), 54, from);
+    fwrite(buffer, sizeof(char), 54, to);
+
+    unsigned int index = 0, no_of_bits = 8;
+
+    printf("%i %i %i\n", offset, width, height);
+
+    BGR aux;
+    char bit;
+
+    for(int i=0; i<width; i++){
+        for(int j=0; j<height; j++){
+            fread(&aux, sizeof(BGR), 1, from);
+            // printf("%c", message[index]);
+            if(message[index] != 0){
+                if(no_of_bits >= 3){
+                    bit = ((message[index] & (1 << (no_of_bits - 1) )) >> (no_of_bits - 1));
+                    aux.b = ((aux.b >> 1) << 1) | bit;
+
+                    bit = ((message[index] & (1 << (no_of_bits - 2) )) >> (no_of_bits - 2));
+                    aux.g = ((aux.g >> 1) << 1) | bit;
+
+                    bit = ((message[index] & (1 << (no_of_bits - 3) )) >> (no_of_bits - 3));
+                    aux.r = ((aux.r >> 1) << 1) | bit;
+
+                    no_of_bits -= 3;
+
+                    if(no_of_bits == 0){
+                        index ++;
+                        no_of_bits = 8;
+                    }
+                }
+
+                else if(no_of_bits == 2){
+                    aux.b = ((aux.b >> 1) << 1) | ((message[index] & 2) >> 1);
+                    aux.g = ((aux.g >> 1) << 1) | (message[index] & 1);
+
+                    index ++;
+                    aux.r = ((aux.r >> 1) << 1) | ((message[index] & (1 << 7)) >> 7);
+                    no_of_bits = 7;
+                }
+
+                else if(no_of_bits == 1){
+                    aux.b = ((aux.b >> 1) << 1) | (message[index] & 1);
+
+                    index ++;
+                    aux.g = ((aux.g >> 1) << 1) | ((message[index] & (1 << 7)) >> 7);
+                    aux.r = ((aux.r >> 1) << 1) | ((message[index] & (1 << 6)) >> 6);
+                    no_of_bits = 6;
+                }
+                // fprintf(tmp, "%c %c %c\n", (aux.b & 1) + '0', (aux.g & 1) + '0', (aux.r & 1) + '0');
+            }
+            fwrite(&aux, sizeof(BGR), 1, to);
+        }
+    }
+    fclose(tmp);
+
+}
+
+
+void lsb_method_read(FILE* from){
+
+    FILE* tmp = fopen("tmp2.txt", "w");
+
+    fseek(from, 0xa, SEEK_SET);
+    int offset;
+    fread(&offset, sizeof(int), 1, from);
+
+    int width, height;
+    fseek(from, 0x12, SEEK_SET);
+    fread(&width, sizeof(int), 1, from);
+    fread(&height, sizeof(int), 1, from);
+
+    fseek(from, 0, SEEK_SET);
+    char c[54];
+    fread(c, sizeof(char), 54, from);
+
+    // fwrite(buffer, sizeof(char), 54, to); 
+    // printf("%d %d %d %ld\n", offset, width, height, ftell(from));
+
+    // const int size = 100;
+    char buffer[size+1] = {0}, current_char;
+    int buffer_index = 0, no_of_bits = 0;
+
+    BGR aux;
+
+    // printf("debug\n");
+
+    for(int i=0; i<width; i++){
+        for(int j=0; j<height; j++){
+
+
+            fread(&aux, sizeof(BGR), 1, from);
+            // printf("%ld\n", ftell(from));
+
+            if(no_of_bits <= 5){
+
+                buffer[buffer_index] <<= 1;
+                buffer[buffer_index] |= aux.b & 1;
+
+                buffer[buffer_index] <<= 1;
+                buffer[buffer_index] |= aux.g & 1;
+
+                buffer[buffer_index] <<= 1;
+                buffer[buffer_index] |= aux.r & 1;
+
+                no_of_bits += 3;
+
+                if(buffer_index != size-1){
+                    if(no_of_bits == 8){
+                        buffer_index ++;
+                        buffer[buffer_index] = 0;
+                        no_of_bits = 0;
+                    }
+                }
+                else{
+                    buffer[buffer_index+1] = 0;
+                    printf("%s", buffer);
+                    buffer_index = 0;
+                    buffer[buffer_index] = 0;
+                    no_of_bits = 0;
+                }
+            }
+            else if(no_of_bits == 6){
+                buffer[buffer_index] <<= 1;
+                buffer[buffer_index] |= aux.b & 1;
+
+                buffer[buffer_index] <<= 1;
+                buffer[buffer_index] |= aux.g & 1;
+
+                if(buffer_index != size-1){
+                        buffer_index ++;
+                }
+                else{
+                    buffer[buffer_index + 1] = 0;
+                    printf("%s", buffer);
+                    buffer_index = 0;
+                }
+
+                buffer[buffer_index] = 0;
+
+
+                buffer[buffer_index] <<= 1;
+                buffer[buffer_index] |= aux.r & 1;
+
+                no_of_bits = 1;
+            }
+            else if(no_of_bits == 7){
+                buffer[buffer_index] <<= 1;
+                buffer[buffer_index] |= aux.b & 1;
+
+                if(buffer_index != size-1){
+                    buffer_index ++;
+                }
+                else{
+                    buffer[buffer_index + 1] = 0;
+                    printf("%s", buffer);
+                    buffer_index = 0;
+                }
+                buffer[buffer_index] = 0;
+
+                
+                buffer[buffer_index] <<= 1;
+                buffer[buffer_index] |= aux.g & 1;
+
+                buffer[buffer_index] <<= 1;
+                buffer[buffer_index] |= aux.r & 1;
+
+                no_of_bits = 2;
+            }
+
+            fprintf(tmp, "%d %d %d\n", aux.b & 1, aux.g & 1, aux.r & 1);
+        }
+    }
+    fclose(tmp);
+}
+
+
+int main(){
+    
+    FILE* f = fopen("img.bmp", "r+b");
+    // FILE* file = fopen("img.bmp", "wb");
+    FILE* g = fopen("out.bmp", "r+b");
+    FILE* h = fopen("pointillist.bmp", "r+b");
+
+    unsigned int no_of_blocks = 1000;
+    unsigned int data_size = no_of_blocks * no_of_blocks * 3;
+
+    char message[] = "am fost la ana si cornel sa aflu si eu ce s-a mai vandut am fost la ana si cornel sa aflu si eu ce s-a mai vandut am fost la ana si cornel sa aflu si eu ce s-a mai vandut am fost la ana si cornel sa aflu si eu ce s-a mai vandutam fost la ana si cornel sa aflu si eu ce s-a mai vandut am fost la ana si cornel sa aflu si eu ce s-a mai vandut am fost la ana si cornel sa aflu si eu ce s-a mai vandut am fost la ana si cornel sa aflu si eu ce s-a mai vandut";
+
+
+    // lsb_method_write(f, g, message);
+    lsb_method_read(g);
+
+
+    // clock_t start = clock();
+
+    // BMP_header* h1 = BMP_header_init(data_size);
+    // DIB_header* d1 = DIB_header_init(no_of_blocks, no_of_blocks, data_size);
+
+    // BMP_header_write_to_file(f, h1);
+    // DIB_header_write_to_file(f, d1);
+    
+    // pattern1(f, no_of_blocks);
+
+    
+
+    // // printf("Initialisation: %lf\n", (clock() - start) / (double)CLOCKS_PER_SEC);
+
+    // // start = clock();
+
+
+    // printf("Writing: %lfs\n", (double)(clock() - start) / CLOCKS_PER_SEC);
+
+    // free(h1);
+    // free(d1);
+
+    // fclose(f);
 
     return 0;
 
