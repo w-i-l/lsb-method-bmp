@@ -54,12 +54,16 @@ void BMP_header_display(BMP_header* coppy){
 }
 
 
-void BMP_header_write_to_file(FILE* f, BMP_header* coppy){
+void BMP_header_write_to_file(const char* filename, BMP_header* coppy){
+
+    FILE* f = fopen(filename, "wb");
 
     fwrite(&coppy->file_type, 2, 1, f);
     fwrite(&coppy->file_size, 4, 1, f);
     fwrite(&coppy->empty_space, 4, 1, f);
     fwrite(&coppy->offset, 4, 1, f);
+
+    fclose(f);
 
 }
 
@@ -103,10 +107,12 @@ void DIB_heaader_display(DIB_header* coppy){
 }
 
 
-void DIB_header_write_to_file(FILE* f, DIB_header* coppy){
+void DIB_header_write_to_file(const char* filename, DIB_header* coppy){
+
+    FILE* f = fopen(filename, "ab");
 
     fwrite(coppy, sizeof(*coppy), 1, f);
 
+    fclose(f);
+
 }
-
-
