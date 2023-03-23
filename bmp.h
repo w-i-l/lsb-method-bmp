@@ -19,7 +19,7 @@ typedef struct{
 
 BMP_header* BMP_header_init(unsigned int);
 void BMP_header_display(BMP_header*);
-void BMP_header_write_to_file(FILE*, BMP_header*);
+void BMP_header_write_to_file(const char*, BMP_header*);
 
 
 typedef struct{
@@ -40,7 +40,7 @@ typedef struct{
 
 DIB_header* DIB_header_init(unsigned int, unsigned int, unsigned int);
 void DIB_heaader_display(DIB_header*);
-void DIB_header_write_to_file(FILE*, DIB_header*);
+void DIB_header_write_to_file(const char*, DIB_header*);
 
 
 
