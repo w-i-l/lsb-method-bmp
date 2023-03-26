@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 #include "bmp.h"
-
-
-#define size 37500000
 
 
 void pattern1(const char* filename, unsigned int no_of_blocks){
@@ -62,7 +60,7 @@ void pattern2(const char* filename, unsigned int no_of_blocks){
 
 void lsb_method_write(const char* from_file, const char* to_file, char* message){
 
-    FILE* tmp = fopen("tmp.txt", "w");
+    // FILE* tmp = fopen("tmp.txt", "w");
     FILE* from = fopen(from_file , "rb");
     FILE* to = fopen(to_file, "wb");
 
@@ -85,15 +83,16 @@ void lsb_method_write(const char* from_file, const char* to_file, char* message)
     unsigned int index = 0, no_of_bits = 8;
     int final_no_of_bits = 8;
 
-    printf("%i %i %i\n", offset, width, height);
+    // printf("%i %i %i\n", offset, width, height);
 
     BGR aux;
     char bit;
 
     for(int i=0; i<width; i++){
         for(int j=0; j<height; j++){
+            
             fread(&aux, sizeof(BGR), 1, from);
-            // printf("%c", message[index]);
+
             if(message[index] != 0){
 
                 if(no_of_bits >= 3){
@@ -146,22 +145,15 @@ void lsb_method_write(const char* from_file, const char* to_file, char* message)
                 final_no_of_bits -= 3;
             }
             
-            fprintf(tmp, "%c %c %c\n", (aux.b & 1) + '0', (aux.g & 1) + '0', (aux.r & 1) + '0');
+            // fprintf(tmp, "%c %c %c\n", (aux.b & 1) + '0', (aux.g & 1) + '0', (aux.r & 1) + '0');
             fwrite(&aux, sizeof(BGR), 1, to);
         }
     }
-    fclose(tmp);
+
+    // fclose(tmp);
     fclose(from);
     fclose(to);
 
-}
-
-
-void clear_buffer(char* buffer){
-    int i=0;
-
-    for(i=0; i<size; i++)
-        buffer[i] = 0;
 }
 
 
@@ -183,6 +175,7 @@ void lsb_method_read(const char* from_file, const char* to_file){
     fseek(from, 0, SEEK_SET);
     char c[54];
     fread(c, sizeof(char), 54, from);
+    unsigned int size = ceil((width * height * 3) / 8);
 
     char* buffer = (char*) malloc(sizeof(char) * size);
 
@@ -228,21 +221,10 @@ void lsb_method_read(const char* from_file, const char* to_file){
                         no_of_bits = 0;
                     }
                 }
-                else{
-                    fwrite(buffer, sizeof(char), size, to);  
-                    fprintf(tmp, "Printed 1\n");              
-                    buffer_index = 0;
-                    clear_buffer(buffer);
-                    no_of_bits = 0;
-                }
             }
+
             else if(no_of_bits == 6){
 
-                if(buffer[buffer_index] == 127){
-                    fwrite(buffer, sizeof(char), buffer_index-1, to);  
-                    printf("Done\n");
-                    return;
-                }
 
                 buffer[buffer_index] <<= 1;
                 buffer[buffer_index] |= aux.b & 1;
@@ -250,16 +232,15 @@ void lsb_method_read(const char* from_file, const char* to_file){
                 buffer[buffer_index] <<= 1;
                 buffer[buffer_index] |= aux.g & 1;
 
+                if(buffer[buffer_index] == 127){
+                    fwrite(buffer, sizeof(char), buffer_index-1, to);  
+                    printf("Done\n");
+                    return;
+                }
 
                 if(buffer_index != size-1){
                     buffer_index ++;
                     buffer[buffer_index] = 0;
-                }
-                else{
-                    fwrite(buffer, sizeof(char), size, to);      
-                    fprintf(tmp, "Printed 2\n");              
-                    buffer_index = 0;
-                    clear_buffer(buffer);
                 }
 
                 buffer[buffer_index] |= aux.r & 1;
@@ -268,26 +249,20 @@ void lsb_method_read(const char* from_file, const char* to_file){
             }
             else if(no_of_bits == 7){
 
+                buffer[buffer_index] <<= 1;
+                buffer[buffer_index] |= aux.b & 1;
+
                 if(buffer[buffer_index] == 127){
                     fwrite(buffer, sizeof(char), buffer_index-1, to);  
                     printf("Done\n");
                     return;
                 }
 
-                buffer[buffer_index] <<= 1;
-                buffer[buffer_index] |= aux.b & 1;
-
                 if(buffer_index != size-1){
                     buffer_index ++;
                     buffer[buffer_index] = 0;
                 }
-                else{
-                    fwrite(buffer, sizeof(char), size, to);     
-                    fprintf(tmp, "Printed 3\n");              
-                    buffer_index = 0;
-                    clear_buffer(buffer);
-                }
-                
+
                 buffer[buffer_index] |= aux.g & 1;
 
                 buffer[buffer_index] <<= 1;
@@ -308,14 +283,8 @@ void lsb_method_read(const char* from_file, const char* to_file){
 
 
 int main(){
-    
-    // FILE* f = fopen("img .bmp", "r+b");
-    // // FILE* file = fopen("img. bmp", "wb");
-    // FILE* g = fopen("out .bmp", "r+b");
-    // FILE* h = fopen("pointillist .bmp", "r+b");
-    // FILE* decoded = fopen("decoded .bin", "w+b");
 
-    unsigned int no_of_blocks = 10;
+    unsigned int no_of_blocks = 100;
     unsigned int data_size = no_of_blocks * no_of_blocks * 3;
 
     char message[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n";
@@ -331,22 +300,8 @@ int main(){
     lsb_method_write("test.bmp", "test2.bmp", message);
     lsb_method_read("test2.bmp", "decoded.bin");
 
-
-    // clock_t start = clock();
-
-    
-
-    // // printf("Initialisation: %lf\n", (clock() - start) / (double)CLOCKS_PER_SEC);
-
-    // // start = clock();
-
-
-    // printf("Writing: %lfs\n", (double)(clock() - start) / CLOCKS_PER_SEC);
-
-    // free(h1);
-    // free(d1);
-
-    // fclose(f);
+    free(h1);
+    free(d1);
 
     return 0;
 
