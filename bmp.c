@@ -58,6 +58,11 @@ void BMP_header_write_to_file(const char* filename, BMP_header* coppy){
 
     FILE* f = fopen(filename, "wb");
 
+     if(f == NULL){
+        printf("Can't open %s\n", filename);
+        exit(-1);
+    }
+
     fwrite(&coppy->file_type, 2, 1, f);
     fwrite(&coppy->file_size, 4, 1, f);
     fwrite(&coppy->empty_space, 4, 1, f);
@@ -110,6 +115,11 @@ void DIB_heaader_display(DIB_header* coppy){
 void DIB_header_write_to_file(const char* filename, DIB_header* coppy){
 
     FILE* f = fopen(filename, "ab");
+    
+    if(f == NULL){
+        printf("Can't open %s\n", filename);
+        exit(-1);
+    }
 
     fwrite(coppy, sizeof(*coppy), 1, f);
 
