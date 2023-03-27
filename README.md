@@ -17,9 +17,9 @@
 
 <b>Note that on linux it needs the math library to be linked, so add the <code>-lm</code> flag.</b>
 
-<p>The program has a builtin CLI that has 3 options, to create, write and read a BMP.</p>
+<p>The program has a built-in CLI that has 3 options, to create, write and read a BMP.</p>
 
-<p>To encode a message to a BMP, the text should be written in a file and the BMP should also exists.</p>
+<p>To encode a message to a BMP, the text should be written in a file and the BMP should also exist.</p>
 
 <p>In the <a href='https://github.com/w-i-l/lsb-method-bmp/blob/main/patterns.c'>patterns.c</a> file, are hardcoded 3 different styles for creating a BMP. To add a new file simply define the function, add it to the <a href='https://github.com/w-i-l/lsb-method-bmp/blob/main/Headers/patterns.h'>header file</a> and then write it in the patterns functions array in <a href='https://github.com/w-i-l/lsb-method-bmp/blob/main/Headers/patterns.h'>main.c line 17</a> .</p>
 
@@ -27,7 +27,7 @@
 <hr>
 <h2>How it works</h2>
 
-<p>The following code takes at a time a BGR(blue-green-red) struct and alter the last bit based on the current bit in the message the writes the altered stuct in a new file.</p>
+<p>The following code takes at a time a BGR(blue-green-red) struct and alters the last bit based on the current bit in the message then writes the altered stuct in a new file.</p>
 
 <br>
 <hr>
@@ -58,28 +58,27 @@
 
 <hr>
 
-<p>The writting part can be a little bit confusing, so below it is an explanation:</p>
-
+<p>The writing part can be a little bit confusing, so below it is an explanation:</p>
 <code> bit = ((message[index] & (1 << (no_of_bits - 1) )) >> (no_of_bits - 1));</code>
 
-<p>Taking the inner parenthesis <code>1 << (no_of_bits - 1)</code> simply creates a mask to get the bit from the possition <code>no_of_bits -1 </code>. Then we <b>logical and</b> with the message to get the bit from the given position, but we also could received another bits so we <b>rigth shift</b> with the same amount that we have shifted to left to only get the bit that we were looking for.</p>
+<p>Taking the inner parenthesis <code>1 << (no_of_bits - 1)</code> simply creates a mask to get the bit from the position <code>no_of_bits -1 </code>. Then we <b>logical and</b> with the message to get the bit from the given position, but we also could receive another bits so we <b>right shift</b> with the same amount that we have shifted to left to only get the bit that we were looking for.</p>
 <br/>
 
 <code>aux.b = ((aux.b >> 1) << 1) | bit;</code>
 
-<p>Here we overwrite the bit to the current BGR stuct. The inner paranthesis simply "deletes" the last bit, then we <b>left shift by one</b> to "create" a 0 bit and finally write our bit with a <b>logical or</b>.</p>
+<p>Here we overwrite the bit to the current BGR stuct. The inner parenthesis simply "deletes" the last bit, then we <b>left shift by one</b> to "create" a 0 bit and finally write our bit with a <b>logical or</b>.</p>
 
-<p>To visualise all the process supose that we want to write the letter <b>e</b>(<code>0110 0101</code>).</p>
+<p>To visualize all the process supose that we want to write the letter <b>e</b>(<code>0110 0101</code>).</p>
 
 <p>We start with the index 0 in the current block(meaning that we didn't write any bit) so <code>no_of_bits = 1</code> because we count from 1.</p>
 
 <p>Shifting <code>1 << (1-1 = 0) = 0</code> gives 0 so we basically take the last bit from <b>e</b> which is <code>1</code>.</p>
 
-<p>Now suppose that our <code>aux.b</code> which is a char and represents the amount of blue in the curent pixel is a random value, let's say <code>0110 0111</code>.</p>
+<p>Now suppose that our <code>aux.b</code> which is a char and represents the amount of blue in the current pixel is a random value, let's say <code>0110 0111</code>.</p>
 
-<p>When we <b>right shift by one</b> we get <code>0110 011</code> (this representation will help with visualising the process). After <b>left shift by one</b> the char become <code>0110 0110</code>. So now when we <b>logical or</b> we gonna overwrite the last bit and get the final result which is <code>0110 0111</code>. We do the same for the rest of bits.</p>
+<p>When we <b>right shift by one</b> we get <code>0110 011</code> (this representation will help with visualizing the process). After <b>left shift by one</b> the char becomes <code>0110 0110</code>. So now when we <b>logical or</b> we gonna overwrite the last bit and get the final result which is <code>0110 0111</code>. We do the same for the rest of bits.</p>
 
-<p>The reading part is a lot easier, we just simply <b>left shift by one</b> to "create" and empty bit and the we write our bit read from the BMP.</p>
+<p>The reading part is a lot easier, we just simply <b>left shift by one</b> to "create" and empty bit and then we write our bit read from the BMP.</p>
 
 <code>buffer[buffer_index] <<= 1;<br>
                 buffer[buffer_index] |= aux.b & 1;</code>
