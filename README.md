@@ -1,8 +1,6 @@
 <h1>LSB method for a BMP file</h1>
 <h2>A steganography program to hide a message with LSB-method in a BMP file
-
 </h2>
-<img src=''>
 
 <br>
 <hr>
@@ -65,13 +63,13 @@
 <code> bit = ((message[index] & (1 << (no_of_bits - 1) )) >> (no_of_bits - 1));</code>
 
 <p>Taking the inner parenthesis <code>1 << (no_of_bits - 1)</code> simply creates a mask to get the bit from the possition <code>no_of_bits -1 </code>. Then we <b>logical and</b> with the message to get the bit from the given position, but we also could received another bits so we <b>rigth shift</b> with the same amount that we have shifted to left to only get the bit that we were looking for.</p>
-<br/><br/>
+<br/>
 
 <code>aux.b = ((aux.b >> 1) << 1) | bit;</code>
 
 <p>Here we overwrite the bit to the current BGR stuct. The inner paranthesis simply "deletes" the last bit, then we <b>left shift by one</b> to "create" a 0 bit and finally write our bit with a <b>logical or</b>.</p>
 
-<p>To visualise all the process supose that we want to write the letter <b>e</b>(<code>                 0110 0101</code>).</p>
+<p>To visualise all the process supose that we want to write the letter <b>e</b>(<code>0110 0101</code>).</p>
 
 <p>We start with the index 0 in the current block(meaning that we didn't write any bit) so <code>no_of_bits = 1</code> because we count from 1.</p>
 
